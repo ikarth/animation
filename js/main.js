@@ -16,6 +16,8 @@ AnimationCurves.prototype = {
     },
     create: function() {
 
+    	this.color_spectrum = Phaser.Color.HSVColorWheel();
+
         noise.seed(Math.random());
 
         game.stage.backgroundColor = "#4598D0";
@@ -82,7 +84,34 @@ AnimationCurves.prototype = {
 
         this.landscape = new Array(600).fill(0.5);
 
-        //this.display_path = Phaser.
+		this.slider_rail = new Phaser.Rectangle(532, 50, 72 / 2, 404);
+
+        this.slider_rail_graphics = game.add.graphics(532, 50);
+        this.slider_rail_graphics.beginFill(0x005400);
+        this.slider_rail_graphics.lineStyle(1, 0x222211, 1);
+        this.slider_rail_graphics.drawRect(13, 10, 9, 394);
+        
+		this.slider = game.add.sprite(550, 258, 'ball')
+		this.slider.anchor.x = 0.5;
+        this.slider.anchor.y = 0.5;
+        this.slider.scale.set(0.5);
+
+		this.slider.slide_top = 68;
+		this.slider.slide_bottom = 448;
+
+        this.slider.inputEnabled = true;
+        this.slider.input.enableDrag(false, false, false, 255, this.slider_rail);
+		this.slider.input.allowHorizontalDrag = false;
+		this.slider.events.onDragStop.add(function() {
+			//console.log(this.slider.worldPosition.y);
+			var current_percentage = (this.slider.worldPosition.y - this.slider.slide_top) / (this.slider.slide_bottom - this.slider.slide_top);
+			this.water_height = 255 * (1.0 - current_percentage);
+			this.refreshTerrain();
+		}, this);
+		this.slider.input.enableSnap(1, 4, true);
+
+        this.water_height = 128;
+
         this.ball = game.add.sprite(500, 450, 'ball');
         this.ball.anchor.x = 0.5;
         this.ball.anchor.y = 0.5;
@@ -100,43 +129,37 @@ AnimationCurves.prototype = {
 		if(game.input.keyboard.justPressed(Phaser.KeyCode.UP)) {
 			this.current_easing += 1;
 			this.current_easing %= this.easing_options.length;
-			this.plotTerrain(this.easing_options[this.current_easing]);
-            this.plotLandscape(this.easing_options[this.current_easing]);
+			this.refreshTerrain();
 		}
 		if(game.input.keyboard.justPressed(Phaser.KeyCode.DOWN)) {
 			this.current_easing -= 1;
 			this.current_easing += this.easing_options.length;
 			this.current_easing %= this.easing_options.length;
-			this.plotTerrain(this.easing_options[this.current_easing]);
-            this.plotLandscape(this.easing_options[this.current_easing]);
+			this.refreshTerrain();
 		}
-		
-
         
         this.plotCurve(this.easing_options[this.current_easing]);
         this.ball_tween.easing(this.easing_options[this.current_easing]);
     },
     render: function() {
+    	//game.debug.geom(this.slider_rail,'#0fffff45');
         game.debug.text("current easing function: " + this.easing_options_names[this.current_easing], 25, 32);
+    },
+    refreshTerrain: function() {
+    	this.plotTerrain(this.easing_options[this.current_easing]);
+        this.plotLandscape(this.easing_options[this.current_easing]);	
     },
     plotTerrain: function(easing_func) {
         this.terrain_canvas.clear();
-        this.terrain_canvas.fill(0, 0, 255);
+        this.terrain_canvas.fill(255, 0, 0);
         var perlin_step = 0.17;
-        //this.terrain_canvas.processPixelRGB(function(color, x, y) {
-        //	color.r = 255;
-        //	color.g = Math.random() * 0xFF;
-       // 	color.b = Math.random() * 0xFF;
-       // 	//console.log(color);
-       // 	return color;
-        //});
         for(var x = 0; x < 30; x++) {
            for(var y = 0; y < 80; y++) {
            	  var terrain_height = noise.perlin3(x * perlin_step, y * perlin_step, 0.6);
            	  terrain_height = easing_func(terrain_height);
            	  terrain_height = 128 + (terrain_height * 100);
-           	  var water = 127;
-           	  if (terrain_height > water) {
+           	  
+           	  if (terrain_height > this.water_height) {
            	  	this.terrain_canvas.setPixel(x, y, 0, terrain_height, 0);
            	  } else {
            	  	this.terrain_canvas.setPixel(x, y, 0, 0, 256 - terrain_height);
