@@ -12,19 +12,25 @@ var AnimationCurves = function(game) {};
 AnimationCurves.prototype = {
     preload: function() {
         game.load.path = 'assets/img/';
-
-        // chose your own image to use
         game.load.image('ball', '1F3C0.png');
+
+        game.load.image('8ball', '1F3B1.png');
+		game.load.image('tennis', '1F3BE.png');
+		game.load.image('sun', '1F31E.png');
+		game.load.image('soccer', '26BD.png');
+		game.load.image('baseball', '26BE.png');
+		game.load.image('face', '1F60E.png');
+
+		this.sprite_list = ['8ball', 'tennis', 'sun', 'soccer', 'baseball', 'face'];
     },
     create: function() {
+
     	this.color_spectrum = Phaser.Color.HSVColorWheel();
+
         noise.seed(Math.random());
 
-        // pick a background color you like
         game.stage.backgroundColor = "#4598D0";
 
-		// I left this handy list of easing functions here 
-		// in this array for you to reference
         this.easing_options = [
             Phaser.Easing.Linear.None,
             Phaser.Easing.Bounce.In,
@@ -46,10 +52,6 @@ AnimationCurves.prototype = {
             Phaser.Easing.Back.Out,
             Phaser.Easing.Back.InOut
         ];
-        // Adding their names manually was much easier than 
-        // extracting them from the function definition,
-        // but it does mean that you need to keep the two
-        // lists aligned...
         this.easing_options_names = [
             "Phaser.Easing.Linear.None",
             "Phaser.Easing.Bounce.In",
@@ -71,27 +73,51 @@ AnimationCurves.prototype = {
             "Phaser.Easing.Back.Out",
             "Phaser.Easing.Back.InOut"
         ];
+        this.current_easing = 0;
 
-        // Add your sprite here, something like this...
         this.ball = game.add.sprite(500, 450, 'ball');
         this.ball.anchor.x = 0.5;
         this.ball.anchor.y = 0.5;
         this.ball.scale.set(0.75);
 
-        // Now add a tween to it!
+        this.ball_tween = game.add.tween(this.ball);
+        this.ball_tween.to({x:[500], y:[50]}, 3000, Phaser.Easing.Linear.None);
+        this.ball_tween.repeat(-1);
+        this.ball_tween.start();
 
-        // And a second tween!
-
-        // And chain a tween!
-
-        // And a callback function!
-
+		this.tween_speed = 3000;
+		let text_style = { font: "16px Calibri", fill: "#FFF", boundsAlignH: "center", boundsAlignV: "middle"};
+		this.balls = []
+        for(var i = 0; i < this.easing_options.length; i++) {
+        	var y_position = 42 + (42 * i);
+        	var new_ball = game.add.sprite(0, y_position, this.sprite_list[i % this.sprite_list.length]);
+        	new_ball.scale.set(0.5);
+        	var new_tween = game.add.tween(new_ball).to({x: game.world.width - new_ball.width},
+        								this.tween_speed, 
+        								this.easing_options[i],
+        								true);
+			new_tween.yoyo(true, 1000);
+			new_tween.repeat(-1, 1000);
+        	game.add.text(48, y_position, this.easing_options_names[i], text_style)
+        	
+			this.balls.push(new_ball);
+        }
     }, 
     update: function() {
+		if(game.input.keyboard.justPressed(Phaser.KeyCode.UP)) {
+			this.current_easing += 1;
+			this.current_easing %= this.easing_options.length;
+		}
+		if(game.input.keyboard.justPressed(Phaser.KeyCode.DOWN)) {
+			this.current_easing -= 1;
+			this.current_easing += this.easing_options.length;
+			this.current_easing %= this.easing_options.length;
+		}
+        this.ball_tween.easing(this.easing_options[this.current_easing]);
     },
     render: function() {
-        game.debug.text("Edit main.js to create your own easing animations", 25, 32);
-    },
+        game.debug.text("current easing function: " + this.easing_options_names[this.current_easing], 25, 32);
+    }
 }
 
 game = new Phaser.Game(950, 900, Phaser.AUTO);

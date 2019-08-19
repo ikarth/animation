@@ -12,19 +12,17 @@ var AnimationCurves = function(game) {};
 AnimationCurves.prototype = {
     preload: function() {
         game.load.path = 'assets/img/';
-
-        // chose your own image to use
         game.load.image('ball', '1F3C0.png');
-    },
-    create: function() {
-    	this.color_spectrum = Phaser.Color.HSVColorWheel();
-        noise.seed(Math.random());
 
-        // pick a background color you like
-        game.stage.backgroundColor = "#4598D0";
+        game.load.image('8ball', '1F3B1.png');
+		game.load.image('tennis', '1F3BE.png');
+		game.load.image('sun', '1F31E.png');
+		game.load.image('soccer', '26BD.png');
+		game.load.image('baseball', '26BE.png');
+		game.load.image('face', '1F60E.png');
 
-		// I left this handy list of easing functions here 
-		// in this array for you to reference
+		this.sprite_list = ['8ball', 'tennis', 'sun', 'soccer', 'baseball', 'face'];
+
         this.easing_options = [
             Phaser.Easing.Linear.None,
             Phaser.Easing.Bounce.In,
@@ -46,10 +44,6 @@ AnimationCurves.prototype = {
             Phaser.Easing.Back.Out,
             Phaser.Easing.Back.InOut
         ];
-        // Adding their names manually was much easier than 
-        // extracting them from the function definition,
-        // but it does mean that you need to keep the two
-        // lists aligned...
         this.easing_options_names = [
             "Phaser.Easing.Linear.None",
             "Phaser.Easing.Bounce.In",
@@ -72,26 +66,21 @@ AnimationCurves.prototype = {
             "Phaser.Easing.Back.InOut"
         ];
 
-        // Add your sprite here, something like this...
+    },
+    create: function() {
+        game.stage.backgroundColor = "#4598D0";
+
         this.ball = game.add.sprite(500, 450, 'ball');
         this.ball.anchor.x = 0.5;
         this.ball.anchor.y = 0.5;
         this.ball.scale.set(0.75);
-
-        // Now add a tween to it!
-
-        // And a second tween!
-
-        // And chain a tween!
-
-        // And a callback function!
-
     }, 
     update: function() {
+		
     },
     render: function() {
-        game.debug.text("Edit main.js to create your own easing animations", 25, 32);
-    },
+        game.debug.text("current easing function: " + this.easing_options_names[this.current_easing], 25, 32);
+    }
 }
 
 game = new Phaser.Game(950, 900, Phaser.AUTO);
